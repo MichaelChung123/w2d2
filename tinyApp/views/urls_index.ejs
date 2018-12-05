@@ -4,10 +4,16 @@
   <title>TinyApp</title>
 </head>
 <body>
-    <% include ./partial/_header.ejs %>
-    <!-- Add your EJS code here -->
-    <% for(let shortUrl in urls) { %>
-      <li><a href="#"> <%= shortUrl; %> </a> - <%= urls[shortUrl] %> </li>
-    <% } %>
+  <% include ./partial/_header.ejs %>
+  <!-- Add your EJS code here -->
+  <% for(let shortUrl in urls) { %>
+  <form method="POST" action="/urls/<%= shortUrl %>/delete">
+    <a href="#"> <%= shortUrl %> </a> - <%= urls[shortUrl] %>
+    <a href="/urls/<%= shortUrl %>"> Edit</a>
+    <button type="Submit" method="POST">Delete</button>
+  </form>
+  <br />
+  <% } %>
+
 </body>
 </html>

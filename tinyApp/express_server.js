@@ -63,9 +63,20 @@ app.post("/urls", (req, res) => {
   res.redirect(redirect);
 });
 
+//Delete - Step 1
+app.post('/urls/:id/delete', (req, res) => {
+  let idVal = req.params.id;
+
+  delete urlDatabase[idVal];
+
+  res.redirect('/urls');
+});
+
+//Show - Step 2
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
-                       urls: urlDatabase };
+                       urls: urlDatabase,
+                       longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 

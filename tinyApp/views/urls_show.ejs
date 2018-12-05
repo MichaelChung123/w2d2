@@ -5,6 +5,10 @@
 </head>
 <body>
     <% include ./partial/_header.ejs %>
-    <li><a href='#'><%= shortURL %></a> - <%= urls[shortURL] %></li>
+    <h2>ShortURL: <%= shortURL %></h2>
+    <form method="POST" action="/urls/<%= shortURL %>/update">
+      <input type="text" value="<%= longURL %>" />
+      <button type="Submit" method="POST">Update</button>
+    </form>
 </body>
 </html>

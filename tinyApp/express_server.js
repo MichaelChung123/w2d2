@@ -1,6 +1,7 @@
 var express = require("express");
 var app = express();
 var PORT = 8080; // default port 8080
+var cookieParser = require('cookie-parser');
 const alphaNum = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 function generateRandomString(chars) {
@@ -11,6 +12,8 @@ function generateRandomString(chars) {
   return result;
 }
 
+app.use(cookieParser());
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -20,6 +23,14 @@ var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
+
+app.post("/login", (req, res) => {
+  console.log("we are receiving data like: ",req.body.username);
+  //sets the cookie res.cookies to the username provided in the text field
+  res.cookie("username", req.body.username);
+
+  res.redirect('/urls');
+});
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -34,7 +45,9 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = { urls: urlDatabase,
+                       username: req.cookies["username"] };
+
   res.render("urls_index", templateVars);
 });
 
@@ -54,15 +67,15 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString(alphaNum);
   let longURL = req.body.longURL;
 
-  // console.log(`${shortURL} - ${longURL}`);
-
   urlDatabase[shortURL] = longURL;
 
-  let redirect = `http://localhost:8080/u/${shortURL}`;
-
-  res.redirect(redirect);
+  res.redirect(`/urls`);
 });
 
+app.post("/logout", (req, res) => {
+    res.clearCookie('username');
+    res.redirect('/urls');
+});
 //Delete - Step 1
 app.post('/urls/:id/delete', (req, res) => {
   let idVal = req.params.id;
@@ -72,11 +85,26 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
+app.post("/urls/:id/update", (req, res) => {
+  // pluck out the id so u know which part of urldatabase to update
+  let selectedURL = req.params.id;
+
+  // pluck out the form tect field (newURL req.body.newURL)
+  let updatedURL = req.body.newURL;
+
+  // after update redirect to /urls
+  urlDatabase[selectedURL] = updatedURL;
+
+  res.redirect('/urls');
+});
+
 //Show - Step 2
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id,
                        urls: urlDatabase,
-                       longURL: urlDatabase[req.params.id] };
+                       longURL: urlDatabase[req.params.id],
+                       username: req.cookies["username"] };
+
   res.render("urls_show", templateVars);
 });
 

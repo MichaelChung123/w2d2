@@ -1,11 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Header Partial</title>
-</head>
-<body>
-    <form method="POST" name="username" action="/login">
-      <button type="Submit" method="POST">Submit</button>
-    </form>
-</body>
-</html>
+  <% if (username) { %>
+  <%= username %>
+  <form action="/logout" method="POST" >
+  <input type="submit" value="Logout" />
+  </form>
+  <% } else { %>
+  <form method="POST" action="/login">
+
+  <input type="text" name="username" />
+  <button type="submit" method="POST">Sign In</button>
+</form>
+  <% } %>

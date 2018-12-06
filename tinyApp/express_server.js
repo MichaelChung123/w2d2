@@ -12,12 +12,42 @@ function generateRandomString(chars) {
   return result;
 }
 
+function checkDupEmail(email) {
+  console.log("checking to see if this is a dupe:", email);
+  for (let userId in users) {
+    if (users[userId]["email"] === email) {
+      console.log("Duplicate email");
+      return true;
+    }
+  }
+  console.log("no dups");
+  return false;
+}
+
 app.use(cookieParser());
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  },
+  "user3RandomID": {
+    id: "user3RandomID",
+    email: "user3@example.com",
+    password: "michael-chunk"
+  }
+}
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -30,6 +60,33 @@ app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
 
   res.redirect('/urls');
+});
+
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+app.post("/register", (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  let randomId = generateRandomString(alphaNum);
+
+  res.cookie("userId", randomId);
+
+  if(!email || !password) {
+    res.sendStatus(400);
+  } else if(checkDupEmail(email)) {
+    res.sendStatus(400);
+  } else {
+    res.redirect("/register");
+  }
+
+  users[randomId] = { id: randomId,
+                      email: email,
+                      password: password };
+
+  console.log(users[randomId]);
+
 });
 
 app.get("/", (req, res) => {
@@ -52,7 +109,10 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = { urls: urlDatabase,
+                       username: req.cookies["username"] };
+
+  res.render("urls_new", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {

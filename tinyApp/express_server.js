@@ -61,19 +61,22 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   let usersArray = Object.values(users);
   let email = req.body.email;
+  let password = req.body.password;
 
   let targetUser = usersArray.find(function(users) {
       return users.email === email;
   });
 
-  console.log(targetUser);
+  if(!targetUser) {
+    res.sendStatus(403);
+  } else if(password !== targetUser.password || !password) {
+    res.sendStatus(403);
+  } else {
+    //sets the cookie res.cookies to the username provided in the text field
+    res.cookie("userId", targetUser.id);
+    res.redirect('/urls');
+  }
 
-  //sets the cookie res.cookies to the username provided in the text field
-  res.cookie("userId", targetUser.id);
-
-  let randomId = generateRandomString(alphaNum);
-
-  res.redirect('/urls');
 });
 
 app.get("/register", (req, res) => {
@@ -121,8 +124,6 @@ app.get("/urls", (req, res) => {
     fetchUser = users[req.cookies["userId"]];
   }
 
-  //console.log(fetchUser);
-
   let templateVars = { urls: urlDatabase,
                        /* username: req.cookies["username"] */
                        user: fetchUser };
@@ -162,7 +163,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie('username');
+    res.clearCookie('userId');
     res.redirect('/urls');
 });
 //Delete - Step 1

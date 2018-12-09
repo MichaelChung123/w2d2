@@ -5,19 +5,29 @@
 </head>
 <body>
   <% include ./partial/_header.ejs %>
-  <!-- Add your EJS code here -->
-  <% for(let shortUrl in urls) { %>
-  <form method="POST" action="/urls/<%= shortUrl %>/delete">
-    <a href="<%= urls[shortUrl] %>"> <%= shortUrl %> </a> - <%= urls[shortUrl] %>
-    <a href="/urls/<%= shortUrl %>"> Edit</a>
-    <button type="Submit" method="POST">Delete</button>
-  </form>
-  <br />
+  <% if(user) { %>
+    <% for(let shortUrl in urls) { %>
+    <form method="POST" action="/urls/<%= shortUrl %>/delete">
+      <a href="<%= urls[shortUrl]['longUrl'] %>"> <%= shortUrl %> </a> -
+      <%= urls[shortUrl]['longUrl'] %>
+      <a href="/urls/<%= shortUrl %>"> Edit</a>
+      <button type="Submit" method="POST">Delete</button>
+    </form>
+    <% } %>
+    <a href="urls/new">New </a>
+    <br />
+    <a href="/register">Register</a>
+  <% } else { %>
+    <h2>Please login</h2>
+    <!--<% for(let shortUrl in urls) { %>
+    <form method="POST" action="/urls/<%= shortUrl %>/delete">
+       <a href="<%= urls[shortUrl]['longUrl'] %>"> <%= shortUrl %> </a> -
+      <%= urls[shortUrl]['longUrl'] %>
+      <a href="/urls/<%= shortUrl %>"> Edit</a>
+    </form>
+    <br />
+    <% } %>
+  <br /> -->
   <% } %>
-
-  <a href="urls/new">New </a>
-  <br />
-  <a href="/register">Register</a>
-
 </body>
 </html>

@@ -5,10 +5,16 @@
 </head>
 <body>
     <% include ./partial/_header.ejs %>
+    <% if(user) { %>
+
     <h2>ShortURL: <%= shortURL %></h2>
     <form method="POST" action="/urls/<%= shortURL %>/update">
-      <input type="text" name="newURL" value="<%= longURL %>" />
+      <input type="text" name="newURL"
+      value="<%= urls[shortURL]['longUrl'] %>" />
       <button type="submit" method="POST">Update</button>
     </form>
+    <% } else { %>
+        <h2>You are not logged in. Please login to access this page</h2>
+    <% } %>
 </body>
 </html>

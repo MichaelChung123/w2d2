@@ -2,10 +2,10 @@ var express = require("express");
 var app = express();
 var PORT = 8080; // default port 8080
 var cookieParser = require('cookie-parser');
+var cookieSession = require('cookie-session')
+
 const alphaNum = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bcrypt = require('bcrypt');
-// const password = "purple-monkey-dinosaur"; // you will probably this from req.params
-// const hashedPassword = bcrypt.hashSync(password, 10);
 
 function generateRandomString(chars) {
   var result = '';
@@ -16,14 +16,11 @@ function generateRandomString(chars) {
 }
 
 function checkDupEmail(email) {
-  console.log("checking to see if this is a dupe:", email);
   for (let userId in users) {
     if (users[userId]["email"] === email) {
-      console.log("Duplicate email");
       return true;
     }
   }
-  console.log("no dups");
   return false;
 }
 
@@ -39,6 +36,13 @@ return db;
 }
 
 app.use(cookieParser());
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -84,13 +88,11 @@ app.get("/login", (req, res) => {
 
 app.get("/urls", (req, res) => {
 
-  //console.log(urlsForUser("user3RandomID"));
-
   let fetchUser;
   let filteredDb = urlDatabase;
-  if(req.cookies["userId"]) {
-    fetchUser = users[req.cookies["userId"]];
-    filteredDb = urlsForUser(req.cookies["userId"]);
+  if(req.session['userId']) {
+    fetchUser = users[req.session['userId']];
+    filteredDb = urlsForUser(req.session['userId']);
   }
 
   let templateVars = { urls: filteredDb,
@@ -112,11 +114,10 @@ app.post("/login", (req, res) => {
   if(!targetUser) {
     res.sendStatus(403);
   } else if(!password || !bcrypt.compareSync(password, bcrypt.hashSync(targetUser.password, 10))) {
-    // console.log(bcrypt.compareSync(password, targetUser.password));
     res.sendStatus(403);
   } else {
     //sets the cookie res.cookies to the username provided in the text field
-    res.cookie("userId", targetUser.id);
+    req.session['userId'] = targetUser.id;
     res.redirect('/urls');
   }
 });
@@ -130,7 +131,7 @@ app.post("/login", (req, res) => {
     let password = bcrypt.hashSync(req.body.password, 10);
     let randomId = generateRandomString(alphaNum);
 
-    res.cookie("userId", randomId);
+    req.session['userId'] = randomId;
 
     if(!email || !password) {
       res.sendStatus(400);
@@ -143,8 +144,6 @@ app.post("/login", (req, res) => {
     users[randomId] = { id: randomId,
       email: email,
       password: password };
-
-      console.log(users[randomId]);
 
     });
 
@@ -163,8 +162,8 @@ app.post("/login", (req, res) => {
   app.get("/urls/new", (req, res) => {
     let fetchUser;
 
-    if(req.cookies["userId"]) {
-      fetchUser = users[req.cookies["userId"]];
+    if(req.session['userId']) {
+      fetchUser = users[req.session['userId']];
 
       let templateVars = { urls: urlDatabase,
        /*username: req.cookies["username"]*/
@@ -190,9 +189,7 @@ app.post("/login", (req, res) => {
     let shortURL = generateRandomString(alphaNum);
     let longURL = req.body.longURL;
 
-    let userId = req.cookies['userId'];
-
-  //  #2 if the user isn't logged in, they can fuck off
+    let userId = req.session['userId'];
 
   urlDatabase[shortURL] = {
     longUrl: longURL,
@@ -203,14 +200,14 @@ app.post("/login", (req, res) => {
 });
 
   app.post("/logout", (req, res) => {
-    res.clearCookie('userId');
+    req.session['userId'] = undefined;
     res.redirect('/urls');
   });
-//Delete - Step 1
+
 app.post('/urls/:id/delete', (req, res) => {
   let idVal = req.params.id;
 
-  if(req.cookies['userId'] === urlDatabase[idVal].owner) {
+  if(req.session['userId'] === urlDatabase[idVal].owner) {
     delete urlDatabase[idVal];
     res.redirect('/urls');
   } else {
@@ -229,29 +226,22 @@ app.post("/urls/:id/update", (req, res) => {
   res.redirect('/urls');
 });
 
-//Show - Step 2
 app.get("/urls/:id", (req, res) => {
   let idVal = req.params.id;
 
-  //if(req.cookies['userId'] === urlDatabase[idVal].owner) {
-
     let fetchUser;
 
-    if(req.cookies["userId"]) {
-      fetchUser = users[req.cookies["userId"]];
+    if(req.session['userId']) {
+      fetchUser = users[req.session['userId']];
     }
 
     let templateVars = { shortURL: req.params.id,
      urls: urlDatabase,
      longURL: urlDatabase[req.params.id],
-     /*username: req.cookies["username"]*/
      user: fetchUser };
 
      res.render("urls_show", templateVars);
-//}
-// else {
-//   res.render("urls_show");
-//}
+
 });
 
 app.listen(PORT, () => {

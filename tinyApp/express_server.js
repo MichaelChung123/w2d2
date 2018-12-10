@@ -4,8 +4,8 @@ var PORT = 8080; // default port 8080
 var cookieParser = require('cookie-parser');
 const alphaNum = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const bcrypt = require('bcrypt');
-const password = "purple-monkey-dinosaur"; // you will probably this from req.params
-const hashedPassword = bcrypt.hashSync(password, 10);
+// const password = "purple-monkey-dinosaur"; // you will probably this from req.params
+// const hashedPassword = bcrypt.hashSync(password, 10);
 
 function generateRandomString(chars) {
   var result = '';
@@ -48,13 +48,13 @@ app.set("view engine", "ejs");
 const users = {
   "userRandomID": {
     id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    email: "b@b",
+    password: "b"
   },
   "user2RandomID": {
     id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
+    email: "c@c",
+    password: "c"
   },
   "user3RandomID": {
     id: "user3RandomID",
@@ -84,7 +84,7 @@ app.get("/login", (req, res) => {
 
 app.get("/urls", (req, res) => {
 
-  console.log(urlsForUser("user3RandomID"));
+  //console.log(urlsForUser("user3RandomID"));
 
   let fetchUser;
   let filteredDb = urlDatabase;
@@ -111,7 +111,8 @@ app.post("/login", (req, res) => {
 
   if(!targetUser) {
     res.sendStatus(403);
-  } else if(!password || !bcrypt.compareSync(password, targetUser.password)) {
+  } else if(!password || !bcrypt.compareSync(password, bcrypt.hashSync(targetUser.password, 10))) {
+    // console.log(bcrypt.compareSync(password, targetUser.password));
     res.sendStatus(403);
   } else {
     //sets the cookie res.cookies to the username provided in the text field

@@ -83,7 +83,21 @@ var urlDatabase = {
 }
 
 app.get("/login", (req, res) => {
-  res.render("login");
+
+  let fetchUser;
+  let filteredDb = urlDatabase;
+  if(req.session['userId']) {
+    fetchUser = users[req.session['userId']];
+    filteredDb = urlsForUser(req.session['userId']);
+
+    res.redirect('/urls');
+  }
+
+  let templateVars = { urls: filteredDb,
+   /* username: req.cookies["username"] */
+   user: fetchUser };
+
+  res.render("login", templateVars);
 });
 
 app.get("/urls", (req, res) => {
@@ -123,7 +137,21 @@ app.post("/login", (req, res) => {
 });
 
   app.get("/register", (req, res) => {
-    res.render("register");
+
+  let fetchUser;
+  let filteredDb = urlDatabase;
+  if(req.session['userId']) {
+    fetchUser = users[req.session['userId']];
+    filteredDb = urlsForUser(req.session['userId']);
+
+    res.redirect('/urls');
+  }
+
+  let templateVars = { urls: filteredDb,
+   /* username: req.cookies["username"] */
+   user: fetchUser };
+
+    res.render("register", templateVars);
   });
 
   app.post("/register", (req, res) => {
@@ -148,7 +176,11 @@ app.post("/login", (req, res) => {
     });
 
   app.get("/", (req, res) => {
-    res.send("Hello!");
+    if(req.session['userId']) {
+      res.redirect("/urls");
+    } else {
+      res.redirect("/login");
+    }
   });
 
   app.get("/urls.json", (req, res) => {

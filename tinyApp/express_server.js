@@ -53,17 +53,17 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "b@b",
-    password: "b"
+    password: bcrypt.hashSync("b",10)
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "c@c",
-    password: "c"
+    password: bcrypt.hashSync("c",10)
   },
   "user3RandomID": {
     id: "user3RandomID",
     email: "a@a",
-    password: "a"
+    password: bcrypt.hashSync("a",10)
   }
 }
 
@@ -94,7 +94,6 @@ app.get("/login", (req, res) => {
   }
 
   let templateVars = { urls: filteredDb,
-   /* username: req.cookies["username"] */
    user: fetchUser };
 
   res.render("login", templateVars);
@@ -127,7 +126,7 @@ app.post("/login", (req, res) => {
 
   if(!targetUser) {
     res.sendStatus(403);
-  } else if(!password || !bcrypt.compareSync(password, bcrypt.hashSync(targetUser.password, 10))) {
+  } else if(!password || !bcrypt.compareSync(password, targetUser.password)) {
     res.sendStatus(403);
   } else {
     //sets the cookie res.cookies to the username provided in the text field
@@ -140,16 +139,14 @@ app.post("/login", (req, res) => {
 
   let fetchUser;
   let filteredDb = urlDatabase;
-  if(req.session['userId']) {
-    fetchUser = users[req.session['userId']];
-    filteredDb = urlsForUser(req.session['userId']);
 
-    res.redirect('/urls');
+  if(req.session['userId']) {
+
+    return res.redirect('/urls');
   }
 
-  let templateVars = { urls: filteredDb,
-   /* username: req.cookies["username"] */
-   user: fetchUser };
+  let templateVars = {
+   user: users[req.session['userId']] };
 
     res.render("register", templateVars);
   });
@@ -255,16 +252,31 @@ app.post("/urls/:id/update", (req, res) => {
   // after update redirect to /urls
   urlDatabase[selectedURL]['longUrl'] = updatedURL;
 
+  let fetchUser;
+
+    if(req.session['userId']) {
+      fetchUser = users[req.session['userId']];
+    }
+
+    if(!fetchUser || fetchUser.id != urlDatabase[req.params.id].owner) {
+      return res.status(400).send("Not the correct user");
+    }
+
   res.redirect('/urls');
 });
 
 app.get("/urls/:id", (req, res) => {
+
   let idVal = req.params.id;
 
     let fetchUser;
 
     if(req.session['userId']) {
       fetchUser = users[req.session['userId']];
+    }
+
+    if(!fetchUser || fetchUser.id != urlDatabase[req.params.id].owner) {
+      return res.status(400).send("Not the correct user");
     }
 
     let templateVars = { shortURL: req.params.id,

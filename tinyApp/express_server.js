@@ -209,8 +209,8 @@ app.post("/login", (req, res) => {
   app.get("/u/:shortURL", (req, res) => {
   // let longURL = ...
   let longURL = urlDatabase[req.params.shortURL];
-
-  res.redirect(longURL);
+  console.log("Long URL is: ", longURL.longUrl);
+  res.redirect(longURL.longUrl);
 });
 
   app.post("/urls", (req, res) => {
